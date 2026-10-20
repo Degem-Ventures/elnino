@@ -110,3 +110,33 @@ input[type=search]{background:rgba(255,255,255,.05);border:1px solid var(--line)
   .row{gap:7px}
   .bar{width:48px;flex-basis:48px}
 }
+
+@media(min-width:1081px) and (min-height:680px){
+  .wrap{padding:12px 18px 14px}
+  header{gap:12px;margin-bottom:10px}
+  .brand h1{font-size:24px}
+  .brand p{margin-top:4px;font-size:13px}
+  .badge{margin-bottom:8px}
+  .tab{padding:8px 12px}
+  .grid{height:calc(100svh - 160px);min-height:0;gap:12px}
+  .mapcard{min-height:0;padding:8px}
+  .map-container{display:flex;flex:1;min-height:0;justify-content:center}
+  #map{width:auto;height:100%;max-width:100%;max-height:100%}
+  .legendbar{gap:10px;padding:6px 4px 2px}
+  .side{display:grid;grid-template-rows:minmax(0,1fr) minmax(0,1fr) minmax(0,1.15fr);min-height:0;gap:8px}
+  .side>.card{min-height:0;overflow:auto}
+  .side>.list-panel{display:flex;flex-direction:column;overflow:hidden}
+  .list-panel .list-header{flex:none}
+  .list-panel .list{flex:1;min-height:0;max-height:none}
+  .pad{padding:11px}
+  .h{margin-bottom:7px}
+  .kpis{gap:7px;margin-top:8px}
+  .summary{margin-top:8px}
+  .detail{min-height:0}
+  .tools{margin-bottom:6px}
+}
+@media(max-width:620px){
+  .wrap{padding:12px 10px 28px}
+  .brand h1{font-size:21px}
+  #map{height:min(calc(100svh - 360px), 480px);max-height:calc(100vh - 360px)}
+}
