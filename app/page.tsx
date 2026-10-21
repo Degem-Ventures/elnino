@@ -1,9 +1,11 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
+import AtlanticView from './atlantic-view';
 import DATA from './data.json';
+import WeatherView from './weather-view';
 
-type Mode = 'y2009' | 'y2015' | 'y2026' | 'hot';
+type Mode = 'y2009' | 'y2015' | 'y2026' | 'hot' | 'wx' | 'atl';
 type HistoricalMode = 'y2009' | 'y2015';
 type Tooltip = { county: string; left: number; top: number } | null;
 
@@ -36,11 +38,15 @@ const RISK_LABEL: Record<string, string> = {
   elevated: 'Elevated',
   moderate: 'Moderate',
 };
-const TABS: { mode: Mode; label: string }[] = [
-  { mode: 'y2009', label: '2009–10 event' },
-  { mode: 'y2015', label: '2015–16 event' },
+const TABS: ({ mode: Mode; label: string } | { separator: true })[] = [
   { mode: 'y2026', label: '2026 outlook' },
-  { mode: 'hot', label: 'Chronic hotspots' },
+  { mode: 'wx', label: 'Weather' },
+  { separator: true },
+  { mode: 'y2015', label: '2015–16' },
+  { mode: 'y2009', label: '2009–10' },
+  { mode: 'hot', label: 'Hotspots' },
+  { separator: true },
+  { mode: 'atl', label: 'Atlantic & ENSO' },
 ];
 const ALL_NAMES = Object.keys(DATA.boundaries);
 
@@ -70,7 +76,7 @@ const HOTSPOT_COLOR = (score: number) =>
           : TIER.minimal.color;
 
 export default function Home() {
-  const [mode, setMode] = useState<Mode>('y2015');
+  const [mode, setMode] = useState<Mode>('y2026');
   const [selected, setSelected] = useState<string | null>(null);
   const [query, setQuery] = useState('');
   const [tooltip, setTooltip] = useState<Tooltip>(null);
@@ -79,7 +85,7 @@ export default function Home() {
 
   useEffect(() => {
     const requestedMode = window.location.hash.slice(1);
-    if (['y2009', 'y2015', 'y2026', 'hot'].includes(requestedMode)) {
+    if (['y2009', 'y2015', 'y2026', 'hot', 'wx', 'atl'].includes(requestedMode)) {
       setMode(requestedMode as Mode);
     }
   }, []);
@@ -376,12 +382,19 @@ export default function Home() {
     <main className="wrap">
       <header>
         <div className="brand">
+          <a className="logolockup" href="/about" aria-label="About DEGEM and this mapper">
+            <span className="logotile">D</span>
+            <span className="logoword"><span className="c-d">D</span><span className="c-e">E</span><span className="c-g">G</span><span className="c-e2">E</span><span className="c-m">M</span></span>
+            <span className="logodot" />
+          </a>
           <div className="badge">Kenya · County-level · Historical</div>
           <h1>Super El Niño Mapper <b>- Kenya</b></h1>
-          <p>How the <b>2015–16</b> and <b>2009–10</b> El Niño events hit Kenya&apos;s 47 counties - and a county-level <b>2026 outlook</b> for the projected historic El Niño. Flood hotspots, landslides, disease risk and where the rains helped. Hover a county, click for the record.</p>
+          <p>How the <b>2015–16</b> and <b>2009–10</b> El Niño events hit Kenya&apos;s 47 counties - and a county-level <b>2026 outlook</b> for the projected historic El Niño. Flood hotspots, landslides, disease risk and where the rains helped. Plus the Atlantic hurricane record across ENSO phases, 2007–2025.</p>
         </div>
         <nav className="tabs" aria-label="Map views">
-          {TABS.map((tab) => (
+          {TABS.map((tab, index) => 'separator' in tab ? (
+            <span className="tabsep" aria-hidden="true" key={`separator-${index}`} />
+          ) : (
             <button
               className={`tab${mode === tab.mode ? ' on' : ''}`}
               type="button"
@@ -395,7 +408,8 @@ export default function Home() {
         </nav>
       </header>
 
-      <div className="grid">
+      {mode === 'wx' ? <WeatherView /> : mode === 'atl' ? <AtlanticView /> : (
+      <div className="grid" id="maingrid">
         <section className="card mapcard" aria-label="County impact map">
           <div className="tools">
             <input
@@ -479,10 +493,27 @@ export default function Home() {
             </div>
             <p className="summary">{summary}</p>
           </section>
+          {forecast && (
+            <section className="card pad timeline-card">
+              <h2 className="h">Probable timeline · OND 2026</h2>
+              <p className="hint timeline-intro">Month-by-month outlook from NOAA CPC, ICPAC and KMD signals</p>
+              <div className="tl">
+                {forecast.timeline.map((entry) => (
+                  <article className="tln" key={entry.k} style={{ '--timeline-color': entry.c } as React.CSSProperties}>
+                    <div className="tlhead"><span className="tlm">{entry.k}</span><span className="tlp">{entry.ph}</span><span className="tlb">{entry.b}</span></div>
+                    <p className="tlt">{entry.t}</p>
+                  </article>
+                ))}
+              </div>
+              <p className="hint timeline-source">{forecast.tlsrc}</p>
+              <p className="hint timeline-weather">Live during the season: use the <b>Weather</b> tab for current conditions and a 7-day outlook across Kenya’s 47 counties.</p>
+            </section>
+          )}
           {renderDetail()}
           <section className="card pad list-panel">{renderList()}</section>
         </aside>
       </div>
+      )}
 
       <section className="card foot">
         <h2 className="h">How this mapper was built</h2>
@@ -492,7 +523,7 @@ export default function Home() {
         </figure>
         <h2 className="h foot-heading">Method &amp; interpretation</h2>
         <p>{DATA.method} 2026 MODEL - {forecast?.formula ?? DATA.forecast.formula}</p>
-        <h2 className="h foot-heading">Sources</h2>
+        <h2 className="h foot-heading" id="sources">Sources</h2>
         <div>
           {DATA.sources.map(([label, url]) => (
             <div className="source" key={url}><a href={url} target="_blank" rel="noopener noreferrer">{label}</a></div>
