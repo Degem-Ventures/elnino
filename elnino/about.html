@@ -77,6 +77,10 @@ footer{display:flex;flex-wrap:wrap;gap:14px;align-items:center;justify-content:s
 .credit{display:flex;align-items:center;gap:10px;font-size:12.5px;color:var(--mut)}
 .credit b{color:#fff;letter-spacing:.16em}
 .credit .logotile{width:22px;height:22px;font-size:12px;border-radius:7px;box-shadow:none}
+.srclist{margin:10px 0 0;padding-left:20px;font-size:13px;color:#c6d2e3;line-height:1.55}
+.srclist li{margin:7px 0}
+.srclist a{color:#9fd2f5;text-decoration:none;border-bottom:1px dotted rgba(159,210,245,.35)}
+.srclist a:hover{color:#fff}
 </style>
 </head>
 <body>
@@ -161,8 +165,17 @@ footer{display:flex;flex-wrap:wrap;gap:14px;align-items:center;justify-content:s
       <li><b>2026 index</b> = 0.40 × historical recurrence + 0.35 × ICPAC/KMD forecast signal + 0.25 × structural exposure.</li>
       <li><b>Atlantic module</b> from NOAA / NHC HURDAT2 hurricane counts paired with the historical ENSO winter / peak-season phase.</li>
     </ul>
-    <p class="hint" style="margin-top:12px">The 2026 figure is a transparent planning index, not a physics-based hydrological forecast — forecast skill
-      declines for smaller areas and beyond a season. The full source list sits at the bottom of the mapper.</p>
+  </div>
+
+  <h2>Method &amp; interpretation</h2>
+  <div class="panel">
+    <p style="margin:0;font-size:13.5px;color:#c6d2e3;line-height:1.6">Tier = documented impact level in the two events (severe / high / moderate / watch / minimal). "Benefit" flags counties where the extra rainfall was reported as largely positive for crops or livestock. "Watch" = national flooding was reported but county-specific detail is limited. Numbers are the ranges quoted by the cited agencies, not exact census figures.</p>
+    <p style="margin:12px 0 0;font-size:13.5px;color:#c6d2e3;line-height:1.6"><b style="color:#fff">2026 model.</b> Risk (0-100) = 0.40 x historical recurrence + 0.35 x ICPAC/KMD 2026 forecast signal + 0.25 x structural exposure. It is a transparent planning index, not a physics-based hydrological forecast; forecast skill declines for smaller areas and beyond a season.</p>
+  </div>
+
+  <h2>Sources</h2>
+  <div class="panel">
+    <ol class="srclist"><li><a href="https://www.cpc.ncep.noaa.gov/products/analysis_monitoring/enso_advisory/ensodisc.shtml" target="_blank">NOAA CPC — ENSO Diagnostic Discussion (10 Sep 2026)</a></li><li><a href="https://www.icpac.net/news/the-greater-horn-of-africa-is-expected-to-experience-a-wetter-than-normal-october-december-ond-2026-season-as-el-ni%C3%B1o-strengthens/" target="_blank">ICPAC — wetter-than-normal OND 2026 (18 Aug 2026)</a></li><li><a href="https://meteo.go.ke/our-products/seasonal-forecast/october-november-december-ond-2026-seasonal-weather-forecast" target="_blank">KMD — OND 2026 forecast (Oct 2026)</a></li><li><a href="https://wmo.int/media/news/el-nino-impacts-greater-horn-of-africa" target="_blank">WMO — El Niño impacts Greater Horn of Africa</a></li><li><a href="https://iri.columbia.edu/our-expertise/climate/forecasts/enso/current/" target="_blank">IRI (Columbia) — ENSO forecast</a></li><li><a href="https://www.climatecentre.org/wp-content/uploads/Preparing-for-the-2015-2016-El-Nino.pdf" target="_blank">RC Climate Centre — Preparing for 2015–16</a></li><li><a href="https://floodlist.com/africa/kenya-floods-heavy-rain-el-nino-2015" target="_blank">FloodList — Narok landslide (18 Nov 2015)</a></li><li><a href="https://reliefweb.int/report/kenya/el-nino-rainfall-monitoring-report-17-november-10-2015" target="_blank">Kenya Red Cross — Rainfall Report 17 (Nov 2015)</a></li><li><a href="https://reliefweb.int/node/1290936" target="_blank">WFP — El Niño Situation Report #1 (Dec 2015)</a></li><li><a href="https://www.ifrc.org/docs?file=appeals/10/MDRKE011.pdf" target="_blank">IFRC DREF MDRKE011 — Floods 2010</a></li><li><a href="https://reliefweb.int/report/kenya/kenya-floods-emergency-plan-action-mdrke036" target="_blank">IFRC EPoA MDRKE036 — Kenya: Floods (4 Jan 2016)</a></li><li><a href="https://reliefweb.int/report/kenya/kenya-floods-situation-report-no-2-04-nov-2009" target="_blank">OCHA — Floods Sit. Report No. 2 (4 Nov 2009)</a></li><li><a href="https://www.unocha.org/publications/report/kenya/kenya-floods-situation-report-no-2-05-jan-2010" target="_blank">OCHA — Floods Sit. Report No. 2 (5 Jan 2010)</a></li><li><a href="https://www.unocha.org/publications/report/kenya/kenya-floods-situation-report-no-3-12-jan-2010" target="_blank">OCHA — Floods Sit. Report No. 3 (12 Jan 2010)</a></li><li><a href="https://www.unocha.org/publications/report/kenya/kenya-floods-situation-report-no-1-21-apr-2009" target="_blank">OCHA — Floods Sit. Report No. 1 (21 Apr 2009)</a></li><li><a href="https://nation.africa/kenya/climate/el-ni%C3%B1o-18-counties-flagged-as-high-risk-5552916" target="_blank">Nation Africa — El Niño: 18 counties flagged</a></li><li><a href="https://www.geoboundaries.org/api/current/gbOpen/KEN/ADM1/" target="_blank">geoBoundaries — Kenya ADM1 boundaries</a></li></ol>
   </div>
 
   <footer>
@@ -172,7 +185,7 @@ footer{display:flex;flex-wrap:wrap;gap:14px;align-items:center;justify-content:s
     </div>
     <nav>
       <a href="index.html">Mapper</a>
-      <a href="index.html#sources">Full source list</a>
+      <a href="#sources">Sources</a>
     </nav>
   </footer>
 
