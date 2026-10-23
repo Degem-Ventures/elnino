@@ -45,6 +45,26 @@ const views = [
   },
 ];
 
+const sources = [
+  ['NOAA CPC — ENSO Diagnostic Discussion (10 Sep 2026)', 'https://www.cpc.ncep.noaa.gov/products/analysis_monitoring/enso_advisory/ensodisc.shtml'],
+  ['ICPAC — wetter-than-normal OND 2026 (18 Aug 2026)', 'https://www.icpac.net/news/the-greater-horn-of-africa-is-expected-to-experience-a-wetter-than-normal-october-december-ond-2026-season-as-el-ni%C3%B1o-strengthens/'],
+  ['KMD — OND 2026 forecast (Oct 2026)', 'https://meteo.go.ke/our-products/seasonal-forecast/october-november-december-ond-2026-seasonal-weather-forecast'],
+  ['WMO — El Niño impacts Greater Horn of Africa', 'https://wmo.int/media/news/el-nino-impacts-greater-horn-of-africa'],
+  ['IRI (Columbia) — ENSO forecast', 'https://iri.columbia.edu/our-expertise/climate/forecasts/enso/current/'],
+  ['RC Climate Centre — Preparing for 2015–16', 'https://www.climatecentre.org/wp-content/uploads/Preparing-for-the-2015-2016-El-Nino.pdf'],
+  ['FloodList — Narok landslide (18 Nov 2015)', 'https://floodlist.com/africa/kenya-floods-heavy-rain-el-nino-2015'],
+  ['Kenya Red Cross — Rainfall Report 17 (Nov 2015)', 'https://reliefweb.int/report/kenya/el-nino-rainfall-monitoring-report-17-november-10-2015'],
+  ['WFP — El Niño Situation Report #1 (Dec 2015)', 'https://reliefweb.int/node/1290936'],
+  ['IFRC DREF MDRKE011 — Floods 2010', 'https://www.ifrc.org/docs?file=appeals/10/MDRKE011.pdf'],
+  ['IFRC EPoA MDRKE036 — Kenya: Floods (4 Jan 2016)', 'https://reliefweb.int/report/kenya/kenya-floods-emergency-plan-action-mdrke036'],
+  ['OCHA — Floods Situation Report No. 2 (4 Nov 2009)', 'https://reliefweb.int/report/kenya/kenya-floods-situation-report-no-2-04-nov-2009'],
+  ['OCHA — Floods Situation Report No. 2 (5 Jan 2010)', 'https://www.unocha.org/publications/report/kenya/kenya-floods-situation-report-no-2-05-jan-2010'],
+  ['OCHA — Floods Situation Report No. 3 (12 Jan 2010)', 'https://www.unocha.org/publications/report/kenya/kenya-floods-situation-report-no-3-12-jan-2010'],
+  ['OCHA — Floods Situation Report No. 1 (21 Apr 2009)', 'https://www.unocha.org/publications/report/kenya/kenya-floods-situation-report-no-1-21-apr-2009'],
+  ['Nation Africa — El Niño: 18 counties flagged', 'https://nation.africa/kenya/climate/el-ni%C3%B1o-18-counties-flagged-as-high-risk-5552916'],
+  ['geoBoundaries — Kenya ADM1 boundaries', 'https://www.geoboundaries.org/api/current/gbOpen/KEN/ADM1/'],
+];
+
 export default function AboutPage() {
   return (
     <main className="about-wrap">
@@ -105,9 +125,22 @@ export default function AboutPage() {
         <p className="hint about-caveat">The 2026 figure is a transparent planning index, not a physics-based hydrological forecast. Forecast skill declines for smaller areas and farther into the future. Consult the current official sources before making operational decisions.</p>
       </section>
 
+      <h2 className="about-section-title">Method &amp; interpretation</h2>
+      <section className="about-panel about-method">
+        <p>Tier = documented impact level in the two events (severe / high / moderate / watch / minimal). “Benefit” flags counties where extra rainfall was reported as positive for crops or livestock. “Watch” means national flooding was reported, but county-specific detail is limited. Figures are ranges reported by cited agencies, not exact census totals.</p>
+        <p><b>2026 model.</b> Risk (0–100) = 0.40 × historical recurrence + 0.35 × ICPAC/KMD 2026 forecast signal + 0.25 × structural exposure. This is a planning index, not a physics-based hydrological forecast; skill declines at smaller scales and beyond a season.</p>
+      </section>
+
+      <h2 className="about-section-title" id="sources">Sources</h2>
+      <section className="about-panel">
+        <ol className="about-sources">
+          {sources.map(([label, url]) => <li key={url}><a href={url} target="_blank" rel="noopener noreferrer">{label}</a></li>)}
+        </ol>
+      </section>
+
       <footer className="about-footer">
         <div className="credit"><span className="logotile">D</span><span>Super El Niño Mapper — Kenya · built and maintained by <b>DEGEM</b> · 2026</span></div>
-        <nav aria-label="Footer navigation"><a href="/">Mapper</a><a href="/#sources">Full source list</a></nav>
+        <nav aria-label="Footer navigation"><a href="/">Mapper</a><a href="/about#sources">Sources</a></nav>
       </footer>
     </main>
   );

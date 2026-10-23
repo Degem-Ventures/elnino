@@ -76,7 +76,7 @@ const HOTSPOT_COLOR = (score: number) =>
           : TIER.minimal.color;
 
 export default function Home() {
-  const [mode, setMode] = useState<Mode>('y2026');
+  const [mode, setMode] = useState<Mode>('wx');
   const [selected, setSelected] = useState<string | null>(null);
   const [query, setQuery] = useState('');
   const [tooltip, setTooltip] = useState<Tooltip>(null);
@@ -515,20 +515,12 @@ export default function Home() {
       </div>
       )}
 
-      <section className="card foot">
-        <h2 className="h">How this mapper was built</h2>
-        <figure className="process-figure">
-          <img src="/assets/process-diagram.png" alt="Data pipeline: historical records to impact coding, boundaries, interactive map and insight" />
-          <figcaption>Data pipeline - from historical El Niño records to the county-level interactive map.</figcaption>
-        </figure>
-        <h2 className="h foot-heading">Method &amp; interpretation</h2>
-        <p>{DATA.method} 2026 MODEL - {forecast?.formula ?? DATA.forecast.formula}</p>
-        <h2 className="h foot-heading" id="sources">Sources</h2>
-        <div>
-          {DATA.sources.map(([label, url]) => (
-            <div className="source" key={url}><a href={url} target="_blank" rel="noopener noreferrer">{label}</a></div>
-          ))}
+      <section className="card foot mapper-footer">
+        <div className="credit">
+          <span className="logotile">D</span>
+          <span>Super El Niño Mapper — Kenya · built and maintained by <b>DEGEM</b> · 2026</span>
         </div>
+        <a href="/about">Method &amp; sources →</a>
       </section>
     </main>
   );

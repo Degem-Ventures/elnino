@@ -27,6 +27,7 @@ type ForecastResponse = {
   current?: CurrentWeather;
   daily?: Partial<DailyWeather>;
   error?: boolean;
+  reason?: string;
 };
 
 type WeatherPoint = readonly [number, number, number, number];
@@ -172,9 +173,18 @@ async function requestWeather(model: WeatherModel, coarse: boolean) {
     models: model,
   }).toString();
   const response = await fetch(url);
-  if (!response.ok) throw new Error(`Weather request failed (HTTP ${response.status})`);
-  const json = await response.json() as ForecastResponse | ForecastResponse[];
-  const samples = Array.isArray(json) ? json : [json];
+  const text = await response.text();
+  let result: ForecastResponse | ForecastResponse[];
+  try {
+    result = JSON.parse(text) as ForecastResponse | ForecastResponse[];
+  } catch {
+    throw new Error(response.ok ? 'Unexpected weather response' : `HTTP ${response.status}`);
+  }
+  if (!response.ok || (!Array.isArray(result) && result.error)) {
+    throw new Error(!Array.isArray(result) && result.reason ? result.reason : `HTTP ${response.status}`);
+  }
+  if (!Array.isArray(result)) throw new Error(result.reason ?? 'Unexpected weather response');
+  const samples = result;
   const combined = combineCountySamples(samples, coarse ? 1 : 9);
   if (!Object.keys(combined).length) throw new Error('Weather provider returned no county data');
   return combined;
@@ -229,9 +239,9 @@ export default function WeatherView() {
       <div className="atlhead">
         <div>
           <h2 className="h wxh">{windowTitle}</h2>
-          <p className="atlsub">Each county is sampled on a 3×3 grid (9 points) and averaged. Switch between 7-day rainfall and current temperature; models from ECMWF, NOAA, and DWD via Open-Meteo. Select a county on the map for its daily breakdown.</p>
+          <p className="atlsub">Average of 9 points per county · click a county for its daily breakdown.</p>
         </div>
-        <span className="hint">{weatherByCounty ? `${metric === 'rain' ? '7-day totals' : 'Current temperature'} · ${selectedWeather?.samples ?? 0}-point average · Africa/Nairobi` : loading ? 'Loading weather…' : 'Weather unavailable'}</span>
+        <span className="hint">{weatherByCounty ? `${metric === 'rain' ? '7-day totals' : 'temperature now'} · EAT (UTC+3)` : loading ? 'Loading weather…' : 'Weather unavailable'}</span>
       </div>
 
       <div className="tools wx-controls">
@@ -281,7 +291,7 @@ export default function WeatherView() {
           <div className="wxlegend">
             {bands.map((band) => <span className="wxsw" key={band.label}><i style={{ background: band.color }} />{band.label}</span>)}
           </div>
-          <p className="wxhint">{metric === 'rain' ? 'Rainfall is a 7-day total averaged across each county’s 3×3 sample grid.' : 'Temperature is the current average across each county’s 3×3 sample grid.'}</p>
+          <p className="wxhint">{metric === 'rain' ? 'Hover a county for its 7-day total' : 'Hover a county for its temperature now'}</p>
         </div>
 
         <div className="wxpanel" aria-live="polite">

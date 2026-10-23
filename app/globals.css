@@ -276,6 +276,12 @@ table.atl td.num{font-variant-numeric:tabular-nums;font-weight:700;color:#fff}
 .about-panel figcaption{margin-top:6px;font-size:11px;color:var(--mut)}
 .about-panel ul{margin:10px 0 0;padding-left:18px;color:#c6d2e3;font-size:12.5px}
 .about-panel li{margin:5px 0}
+.about-method p{margin:0;color:#c6d2e3;font-size:13px;line-height:1.6}
+.about-method p+p{margin-top:10px}
+.about-sources{margin:0;padding-left:20px;color:#c6d2e3;font-size:12.5px;line-height:1.55}
+.about-sources li{margin:6px 0}
+.about-sources a{color:#9fd2f5;text-decoration:none;border-bottom:1px dotted rgba(159,210,245,.35)}
+.about-sources a:hover{color:#fff}
 .about-caveat{margin:10px 0 0}
 .about-footer{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;margin-top:34px;padding-top:14px;border-top:1px solid var(--line)}
 .about-footer .credit{margin:0;padding:0;border:0}
