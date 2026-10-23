@@ -251,20 +251,12 @@ table.atl td.num{font-variant-numeric:tabular-nums;font-weight:700;color:#fff}
 
   <div id="wxview" class="card pad"></div>
 
-  <div class="card foot">
-    <h3 class="h">How this mapper was built</h3>
-    <figure style="margin:6px 0 4px">
-      <img src="assets/process-diagram.png" alt="Data pipeline: historical records to impact coding, boundaries, interactive map and insight" style="width:100%;border-radius:10px;border:1px solid var(--line)">
-      <figcaption style="font-size:12px;color:var(--mut);margin-top:6px">Data pipeline - from historical El Niño records to the county-level interactive map.</figcaption>
-    </figure>
-    <h3 class="h" style="margin-top:16px">Method &amp; interpretation</h3>
-    <p id="method"></p>
-    <h3 class="h" style="margin-top:16px">Sources</h3>
-    <div id="sources"></div>
-    <div class="credit">
+  <div class="card foot" style="display:flex;flex-wrap:wrap;gap:14px;align-items:center;justify-content:space-between">
+    <div class="credit" style="margin:0;padding:0;border:0">
       <span class="logotile sm">D</span>
       <span>Super El Niño Mapper — Kenya · built and maintained by <b>DEGEM</b> · 2026</span>
     </div>
+    <a href="about.html" style="color:var(--acc);text-decoration:none;font-size:12.5px;white-space:nowrap">Method &amp; sources &rarr;</a>
   </div>
 </div>
 
@@ -525,7 +517,7 @@ function wxFmt(v){
   return wxS.metric==='rain' ? (v.toFixed(1)+' mm') : (v.toFixed(1)+'°C');
 }
 
-/* 9 sample points per county, row-major: (-1,-1) (-1,0) (-1,1) (0,-1) … */
+/* 9 sample points per county, row-major: (-1,-1) (-1,0) (-1,1) (0,-1) ... */
 function wxPoints(coarse){
   const pts = [];
   for(let c=0;c<allNames.length;c++){
@@ -588,7 +580,7 @@ function wxShell(){
   }).join('');
   return '<div class="atlhead"><div>'+
       '<h3 class="wxh" id="wxh">Weather</h3>'+
-      '<p class="atlsub">Each county is sampled on a <b>3×3 grid (9 points)</b> — 423 locations in one request — and averaged. Switch between 7-day rainfall and current temperature; models from ECMWF, NOAA and DWD via Open-Meteo. Click a county for its daily breakdown.</p>'+
+      '<p class="atlsub">Average of 9 points per county · click a county for its daily breakdown.</p>'+
     '</div><span class="hint" id="wxupd">—</span></div>'+
     '<div class="tools" style="margin-top:12px">'+
       '<select id="wxmet" class="wxsel">'+mets+'</select>'+
@@ -688,7 +680,7 @@ function wxPaint(){
   if(h){ h.textContent = wxTitle(); }
   const upd = document.getElementById('wxupd');
   if(upd){
-    upd.textContent = d ? ((isRain ? '7-day totals' : 'temperature now') + ' · 9-point average · Africa/Nairobi') : 'loading…';
+    upd.textContent = d ? ((isRain ? '7-day totals' : 'temperature now') + ' · EAT (UTC+3)') : 'loading…';
   }
 
   const leg = document.getElementById('wxleg');
@@ -700,8 +692,8 @@ function wxPaint(){
   const hint = document.getElementById('wxhint');
   if(hint){
     hint.textContent = isRain
-      ? 'Rainfall = 7-day total averaged over a 3×3 grid of points in each county · hover for the value'
-      : 'Colour = temperature now, averaged over a 3×3 grid of points in each county · hover for the value';
+      ? 'Hover a county for its 7-day total'
+      : 'Hover a county for its temperature now';
   }
 
   const panel = document.getElementById('wxpanel');
@@ -749,18 +741,24 @@ function loadWeather(){
   wxS.busy = true;
   const coarse = wxS.coarse;
   const pts = wxPoints(coarse);
+  const per = coarse ? 1 : 9;
   const lat = pts.map(function(p){ return p[0]; }).join(',');
   const lon = pts.map(function(p){ return p[1]; }).join(',');
-  const per = coarse ? 1 : 9;
-  const url = 'https://api.open-meteo.com/v1/forecast?latitude='+lat+'&longitude='+lon+
-    '&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m'+
-    '&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max'+
-    '&forecast_days=7&timezone=Africa%2FNairobi&models='+wxS.model;
-
+  const url = 'https://api.open-meteo.com/v1/forecast?latitude=' + lat + '&longitude=' + lon +
+    '&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m' +
+    '&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max' +
+    '&forecast_days=7&timezone=Africa%2FNairobi&models=' + wxS.model;
   fetch(url)
-    .then(function(r){ if(!r.ok){ throw new Error('HTTP '+r.status); } return r.json(); })
-    .then(function(j){
-      const arr = Array.isArray(j) ? j : [j];
+    .then(function(r){
+      return r.text().then(function(txt){
+        var j = null;
+        try { j = JSON.parse(txt); } catch(e){}
+        if(!r.ok){ throw new Error((j && j.reason) ? j.reason : ('HTTP ' + r.status)); }
+        return j;
+      });
+    })
+    .then(function(arr){
+      if(!Array.isArray(arr)){ throw new Error((arr && arr.reason) ? arr.reason : 'unexpected response'); }
       const map = {};
       for(let c=0;c<allNames.length;c++){
         const chunk = arr.slice(c*per, c*per + per).filter(function(x){ return x && !x.error; });
@@ -773,7 +771,7 @@ function loadWeather(){
       if(!coarse){
         wxS.coarse = true;
         wxS.busy = false;
-        loadWeather();               /* retry with one point per county */
+        loadWeather();
         return;
       }
       wxS.err = e.message || 'network error';
@@ -915,8 +913,6 @@ function renderHotspots(){
 
 document.getElementById('q').oninput = e=>{ state.q = e.target.value.trim().toLowerCase(); render(); };
 
-document.getElementById('method').textContent = DATA.method + ' 2026 MODEL - ' + DATA.forecast.formula;
-document.getElementById('sources').innerHTML = DATA.sources.map(s=>`<div style="margin:5px 0">• <a href="${s[1]}" target="_blank" rel="noopener">${s[0]}</a></div>`).join('');
 
 // init
 try{
