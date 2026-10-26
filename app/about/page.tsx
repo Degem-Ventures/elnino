@@ -140,7 +140,11 @@ export default function AboutPage() {
 
       <footer className="about-footer">
         <div className="credit"><span className="logotile">D</span><span>Super El Niño Mapper — Kenya · built and maintained by <b>DEGEM</b> · 2026</span></div>
-        <nav aria-label="Footer navigation"><a href="/">Mapper</a><a href="/about#sources">Sources</a></nav>
+        <nav aria-label="Footer navigation">
+          <a href="/">Mapper</a>
+          <a href="/about#sources">Sources</a>
+          <a href="https://elninomapper.gt.tc/stats.php?key=dgm_7f3c1a9e5b2d48c6&i=1" target="_blank" rel="noopener noreferrer">Visitor stats ↗</a>
+        </nav>
       </footer>
     </main>
   );

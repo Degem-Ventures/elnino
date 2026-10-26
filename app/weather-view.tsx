@@ -1,8 +1,7 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import DATA from './data.json';
-import WEATHER_COUNTIES from './weather-counties.json';
 
 type Metric = 'rain' | 'temp';
 type WeatherModel = 'ecmwf_ifs025' | 'gfs_seamless' | 'icon_seamless' | 'best_match';
@@ -30,8 +29,7 @@ type ForecastResponse = {
   reason?: string;
 };
 
-type WeatherPoint = readonly [number, number, number, number];
-type WeatherCountyName = keyof typeof WEATHER_COUNTIES;
+type WeatherCountyName = keyof typeof DATA.boundaries;
 
 const MODELS: { value: WeatherModel; label: string }[] = [
   { value: 'ecmwf_ifs025', label: 'ECMWF IFS' },
@@ -136,58 +134,62 @@ function formatDay(iso: string) {
   return Number.isNaN(date.valueOf()) ? iso : WEEKDAYS[date.getDay()];
 }
 
-function buildPoints(coarse: boolean) {
-  return COUNTY_NAMES.flatMap((name) => {
-    const [latitude, longitude, latSpan, lonSpan] = WEATHER_COUNTIES[name] as unknown as WeatherPoint;
-    if (coarse) return [[latitude, longitude]];
-    return [-1, 0, 1].flatMap((latStep) =>
-      [-1, 0, 1].map((lonStep) => [
-        Math.round((latitude + latStep * latSpan) * 1000) / 1000,
-        Math.round((longitude + lonStep * lonSpan) * 1000) / 1000,
-      ]),
-    );
-  });
+function combineWeatherPayload(payload: unknown) {
+  if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
+    throw new Error('Weather provider returned an unexpected response');
+  }
+  const byCounty = payload as Record<string, ForecastResponse[]>;
+  const combined: Record<string, CountyWeather> = {};
+  for (const [name, samples] of Object.entries(byCounty)) {
+    if (!Array.isArray(samples) || !samples.length) continue;
+    const county = combineSamples(samples);
+    if (county.daily.time.length) combined[name] = county;
+  }
+  if (!Object.keys(combined).length) throw new Error('Weather provider returned no county data');
+  return combined;
 }
 
-function combineCountySamples(samples: ForecastResponse[], pointsPerCounty: number) {
-  const result: Record<string, CountyWeather> = {};
-  COUNTY_NAMES.forEach((name, index) => {
-    const chunk = samples.slice(index * pointsPerCounty, (index + 1) * pointsPerCounty);
-    if (chunk.some((sample) => sample.current && sample.daily?.time)) {
-      result[name] = combineSamples(chunk);
-    }
-  });
-  return result;
-}
-
-async function requestWeather(model: WeatherModel, coarse: boolean) {
-  const points = buildPoints(coarse);
-  const url = new URL('https://api.open-meteo.com/v1/forecast');
-  url.search = new URLSearchParams({
-    latitude: points.map(([latitude]) => latitude).join(','),
-    longitude: points.map(([, longitude]) => longitude).join(','),
-    current: 'temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m',
-    daily: 'weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max',
-    forecast_days: '7',
-    timezone: 'Africa/Nairobi',
-    models: model,
-  }).toString();
-  const response = await fetch(url);
-  const text = await response.text();
-  let result: ForecastResponse | ForecastResponse[];
+function readWeatherCache(key: string) {
   try {
-    result = JSON.parse(text) as ForecastResponse | ForecastResponse[];
+    const raw = localStorage.getItem(key);
+    if (!raw) return null;
+    const cached = JSON.parse(raw) as { t?: unknown; d?: unknown };
+    if (typeof cached.t !== 'number' || !cached.d) return null;
+    return { timestamp: cached.t, data: combineWeatherPayload(cached.d) };
+  } catch {
+    return null;
+  }
+}
+
+function formatCacheTime(timestamp: number) {
+  return new Date(timestamp).toLocaleString('en-GB', {
+    day: '2-digit',
+    month: 'short',
+    hour: '2-digit',
+    minute: '2-digit',
+    timeZone: 'Africa/Nairobi',
+  });
+}
+
+async function requestWeather(model: WeatherModel, fresh: boolean) {
+  const params = new URLSearchParams({ model });
+  if (fresh) params.set('fresh', '1');
+  const response = await fetch(`/api/weather?${params.toString()}`);
+  const text = await response.text();
+  let payload: unknown;
+  try {
+    payload = JSON.parse(text);
   } catch {
     throw new Error(response.ok ? 'Unexpected weather response' : `HTTP ${response.status}`);
   }
-  if (!response.ok || (!Array.isArray(result) && result.error)) {
-    throw new Error(!Array.isArray(result) && result.reason ? result.reason : `HTTP ${response.status}`);
+  if (!response.ok || (payload && typeof payload === 'object' && 'error' in payload && payload.error)) {
+    const reason = payload && typeof payload === 'object' && 'reason' in payload && typeof payload.reason === 'string'
+      ? payload.reason
+      : `HTTP ${response.status}`;
+    throw new Error(reason);
   }
-  if (!Array.isArray(result)) throw new Error(result.reason ?? 'Unexpected weather response');
-  const samples = result;
-  const combined = combineCountySamples(samples, coarse ? 1 : 9);
-  if (!Object.keys(combined).length) throw new Error('Weather provider returned no county data');
-  return combined;
+  combineWeatherPayload(payload);
+  return payload;
 }
 
 export default function WeatherView() {
@@ -195,23 +197,48 @@ export default function WeatherView() {
   const [model, setModel] = useState<WeatherModel>('ecmwf_ifs025');
   const [county, setCounty] = useState<WeatherCountyName>('Nairobi');
   const [weatherByCounty, setWeatherByCounty] = useState<Record<string, CountyWeather> | null>(null);
+  const [cachedAt, setCachedAt] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
+  const lastRefreshKey = useRef(0);
 
   useEffect(() => {
     let cancelled = false;
+    const fresh = refreshKey !== lastRefreshKey.current;
+    lastRefreshKey.current = refreshKey;
+    const cacheKey = `wx:${model}`;
     setLoading(true);
     setError(null);
-    setWeatherByCounty(null);
 
-    requestWeather(model, false)
-      .catch(() => requestWeather(model, true))
-      .then((results) => {
-        if (!cancelled) setWeatherByCounty(results);
+    if (!fresh) {
+      const cached = readWeatherCache(cacheKey);
+      const age = cached ? Date.now() - cached.timestamp : null;
+      if (cached && age !== null && age >= 0 && age < 2 * 60 * 60 * 1000) {
+        setWeatherByCounty(cached.data);
+        setCachedAt(formatCacheTime(cached.timestamp));
+        setLoading(false);
+        return () => { cancelled = true; };
+      }
+    }
+
+    requestWeather(model, fresh)
+      .then((payload) => {
+        if (cancelled) return;
+        const results = combineWeatherPayload(payload);
+        setWeatherByCounty(results);
+        setCachedAt(null);
+        try { localStorage.setItem(cacheKey, JSON.stringify({ t: Date.now(), d: payload })); } catch {}
       })
       .catch((requestError: unknown) => {
-        if (!cancelled) setError(requestError instanceof Error ? requestError.message : 'Network error');
+        if (cancelled) return;
+        const cached = readWeatherCache(cacheKey);
+        if (cached) {
+          setWeatherByCounty(cached.data);
+          setCachedAt(formatCacheTime(cached.timestamp));
+        } else {
+          setError(requestError instanceof Error ? requestError.message : 'Network error');
+        }
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -241,7 +268,7 @@ export default function WeatherView() {
           <h2 className="h wxh">{windowTitle}</h2>
           <p className="atlsub">Average of 9 points per county · click a county for its daily breakdown.</p>
         </div>
-        <span className="hint">{weatherByCounty ? `${metric === 'rain' ? '7-day totals' : 'temperature now'} · EAT (UTC+3)` : loading ? 'Loading weather…' : 'Weather unavailable'}</span>
+        <span className="hint">{cachedAt ? `saved copy · ${cachedAt} EAT` : weatherByCounty ? `${metric === 'rain' ? '7-day totals' : 'temperature now'} · EAT (UTC+3)` : loading ? 'Loading weather…' : 'Weather unavailable'}</span>
       </div>
 
       <div className="tools wx-controls">

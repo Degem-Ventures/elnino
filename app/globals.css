@@ -285,6 +285,9 @@ table.atl td.num{font-variant-numeric:tabular-nums;font-weight:700;color:#fff}
 .about-caveat{margin:10px 0 0}
 .about-footer{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;margin-top:34px;padding-top:14px;border-top:1px solid var(--line)}
 .about-footer .credit{margin:0;padding:0;border:0}
+.mapper-footer-links{display:flex;flex-wrap:wrap;gap:14px}
+.mapper-footer-links a{color:var(--acc);font-size:12.5px;text-decoration:none;white-space:nowrap}
+.mapper-footer-links a:hover{color:#fff}
 @media(max-width:620px){
   .about-wrap{padding:12px 12px 30px}
   .about-top{align-items:flex-start;margin-bottom:20px}

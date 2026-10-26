@@ -520,7 +520,10 @@ export default function Home() {
           <span className="logotile">D</span>
           <span>Super El Niño Mapper — Kenya · built and maintained by <b>DEGEM</b> · 2026</span>
         </div>
-        <a href="/about">Method &amp; sources →</a>
+        <div className="mapper-footer-links">
+          <a href="/about">Method &amp; sources →</a>
+          <a href="https://elninomapper.gt.tc/stats.php?key=dgm_7f3c1a9e5b2d48c6&i=1" target="_blank" rel="noopener noreferrer">Visitor stats ↗</a>
+        </div>
       </section>
     </main>
   );
