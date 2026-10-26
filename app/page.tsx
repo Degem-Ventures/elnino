@@ -3,9 +3,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import AtlanticView from './atlantic-view';
 import DATA from './data.json';
+import PROVINCE_MAP from './province-map.json';
+import ProvinceView from './province-view';
 import WeatherView from './weather-view';
 
-type Mode = 'y2009' | 'y2015' | 'y2026' | 'hot' | 'wx' | 'atl';
+type Mode = 'y1997' | 'y2009' | 'y2015' | 'y2026' | 'hot' | 'wx' | 'atl';
 type HistoricalMode = 'y2009' | 'y2015';
 type Tooltip = { county: string; left: number; top: number } | null;
 
@@ -44,11 +46,36 @@ const TABS: ({ mode: Mode; label: string } | { separator: true })[] = [
   { separator: true },
   { mode: 'y2015', label: '2015–16' },
   { mode: 'y2009', label: '2009–10' },
+  { mode: 'y1997', label: '1997–98' },
   { mode: 'hot', label: 'Hotspots' },
   { separator: true },
   { mode: 'atl', label: 'Atlantic & ENSO' },
 ];
 const ALL_NAMES = Object.keys(DATA.boundaries);
+const COUNTY_AREAS = Object.fromEntries(ALL_NAMES.map((name) => {
+  const coordinates = DATA.boundaries[name as keyof typeof DATA.boundaries].match(/-?\d*\.?\d+/g)?.map(Number) ?? [];
+  let minX = Number.POSITIVE_INFINITY;
+  let maxX = Number.NEGATIVE_INFINITY;
+  let minY = Number.POSITIVE_INFINITY;
+  let maxY = Number.NEGATIVE_INFINITY;
+  for (let index = 0; index + 1 < coordinates.length; index += 2) {
+    minX = Math.min(minX, coordinates[index]);
+    maxX = Math.max(maxX, coordinates[index]);
+    minY = Math.min(minY, coordinates[index + 1]);
+    maxY = Math.max(maxY, coordinates[index + 1]);
+  }
+  return [name, (maxX - minX) * (maxY - minY)];
+}));
+
+function countyLabelStyle(name: string, width: number): React.CSSProperties {
+  if (!width) return { display: 'none' };
+  const area = COUNTY_AREAS[name as keyof typeof COUNTY_AREAS];
+  const pixelSize = area > 60000 ? 13 : area > 20000 ? 12 : area > 6000 ? 11 : area > 2000 ? 10 : 9.5;
+  const scale = 1000 / width;
+  const space = PROVINCE_MAP.labelSpace[name as keyof typeof PROVINCE_MAP.labelSpace] ?? [0, 0];
+  const fits = name.length * pixelSize * 0.56 * scale <= space[0] * 0.92 && pixelSize * scale <= space[1] * 0.62;
+  return { fontSize: `${pixelSize * scale}px`, display: fits ? undefined : 'none' };
+}
 
 function getHotspots() {
   return Object.fromEntries(
@@ -80,15 +107,26 @@ export default function Home() {
   const [selected, setSelected] = useState<string | null>(null);
   const [query, setQuery] = useState('');
   const [tooltip, setTooltip] = useState<Tooltip>(null);
+  const [mapWidth, setMapWidth] = useState(0);
   const mapContainer = useRef<HTMLDivElement>(null);
   const shouldScrollToDetail = useRef(false);
 
   useEffect(() => {
     const requestedMode = window.location.hash.slice(1);
-    if (['y2009', 'y2015', 'y2026', 'hot', 'wx', 'atl'].includes(requestedMode)) {
+    if (['y1997', 'y2009', 'y2015', 'y2026', 'hot', 'wx', 'atl'].includes(requestedMode)) {
       setMode(requestedMode as Mode);
     }
   }, []);
+
+  useEffect(() => {
+    const svg = mapContainer.current?.querySelector('svg');
+    if (!svg) return;
+    const measure = () => setMapWidth(svg.getBoundingClientRect().width);
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(svg);
+    return () => observer.disconnect();
+  }, [mode]);
 
   useEffect(() => {
     if (!shouldScrollToDetail.current) return;
@@ -163,19 +201,6 @@ export default function Home() {
 
   function countyHasBenefit(name: string) {
     return Boolean(event?.counties[name as keyof typeof event.counties]?.benefit);
-  }
-
-  function countyHasLabel(name: string) {
-    if (mode === 'hot') {
-      const hotspot = HOTSPOTS[name as keyof typeof HOTSPOTS];
-      return hotspot.both && hotspot.score >= 4;
-    }
-    if (forecast) {
-      const band = forecastCounties[name as keyof typeof forecastCounties].band;
-      return band === 'extreme' || band === 'veryhigh';
-    }
-    const tier = event?.counties[name as keyof typeof event.counties]?.tier;
-    return tier === 'severe' || tier === 'high';
   }
 
   const legend = mode === 'y2026' ? (
@@ -389,7 +414,7 @@ export default function Home() {
           </a>
           <div className="badge">Kenya · County-level · Historical</div>
           <h1>Super El Niño Mapper <b>- Kenya</b></h1>
-          <p>How the <b>2015–16</b> and <b>2009–10</b> El Niño events hit Kenya&apos;s 47 counties - and a county-level <b>2026 outlook</b> for the projected historic El Niño. Flood hotspots, landslides, disease risk and where the rains helped. Plus the Atlantic hurricane record across ENSO phases, 2007–2025.</p>
+          <p>How the <b>1997–98</b>, <b>2009–10</b>, and <b>2015–16</b> El Niño floods affected Kenya, plus a county-level <b>2026 outlook</b>, live weather, and the Atlantic hurricane record across ENSO phases.</p>
         </div>
         <nav className="tabs" aria-label="Map views">
           {TABS.map((tab, index) => 'separator' in tab ? (
@@ -408,7 +433,7 @@ export default function Home() {
         </nav>
       </header>
 
-      {mode === 'wx' ? <WeatherView /> : mode === 'atl' ? <AtlanticView /> : (
+      {mode === 'wx' ? <WeatherView /> : mode === 'atl' ? <AtlanticView /> : mode === 'y1997' ? <ProvinceView /> : (
       <div className="grid" id="maingrid">
         <section className="card mapcard" aria-label="County impact map">
           <div className="tools">
@@ -452,13 +477,14 @@ export default function Home() {
                 ))}
               </g>
               <g>
-                {ALL_NAMES.filter(countyHasLabel).map((name) => (
+                {ALL_NAMES.map((name) => (
                   <text
                     key={name}
                     className="cty-label"
                     textAnchor="middle"
                     x={DATA.centroids[name as keyof typeof DATA.centroids][0]}
                     y={DATA.centroids[name as keyof typeof DATA.centroids][1]}
+                    style={countyLabelStyle(name, mapWidth)}
                   >
                     {name}
                   </text>
@@ -520,10 +546,7 @@ export default function Home() {
           <span className="logotile">D</span>
           <span>Super El Niño Mapper — Kenya · built and maintained by <b>DEGEM</b> · 2026</span>
         </div>
-        <div className="mapper-footer-links">
-          <a href="/about">Method &amp; sources →</a>
-          <a href="https://elninomapper.gt.tc/stats.php?key=dgm_7f3c1a9e5b2d48c6&i=1" target="_blank" rel="noopener noreferrer">Visitor stats ↗</a>
-        </div>
+        <a href="/about">Method &amp; sources →</a>
       </section>
     </main>
   );

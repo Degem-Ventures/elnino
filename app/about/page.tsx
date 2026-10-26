@@ -8,6 +8,12 @@ export const metadata: Metadata = {
 
 const views = [
   {
+    href: '/#y1997',
+    color: 'var(--severe)',
+    title: '1997–98 event',
+    description: 'The record-breaking floods, shown by Kenya’s pre-2010 provinces because reports lacked county-level detail.',
+  },
+  {
     href: '/#y2009',
     color: 'var(--watch)',
     title: '2009–10 event',
@@ -46,22 +52,22 @@ const views = [
 ];
 
 const sources = [
-  ['NOAA CPC — ENSO Diagnostic Discussion (10 Sep 2026)', 'https://www.cpc.ncep.noaa.gov/products/analysis_monitoring/enso_advisory/ensodisc.shtml'],
-  ['ICPAC — wetter-than-normal OND 2026 (18 Aug 2026)', 'https://www.icpac.net/news/the-greater-horn-of-africa-is-expected-to-experience-a-wetter-than-normal-october-december-ond-2026-season-as-el-ni%C3%B1o-strengthens/'],
-  ['KMD — OND 2026 forecast (Oct 2026)', 'https://meteo.go.ke/our-products/seasonal-forecast/october-november-december-ond-2026-seasonal-weather-forecast'],
+  ['NOAA CPC — ENSO discussion (Sep 2026)', 'https://www.cpc.ncep.noaa.gov/products/analysis_monitoring/enso_advisory/ensodisc.shtml'],
+  ['ICPAC — OND 2026 outlook (Aug 2026)', 'https://www.icpac.net/news/the-greater-horn-of-africa-is-expected-to-experience-a-wetter-than-normal-october-december-ond-2026-season-as-el-ni%C3%B1o-strengthens/'],
+  ['KMD — OND 2026 (Oct 2026)', 'https://meteo.go.ke/our-products/seasonal-forecast/october-november-december-ond-2026-seasonal-weather-forecast'],
   ['WMO — El Niño impacts Greater Horn of Africa', 'https://wmo.int/media/news/el-nino-impacts-greater-horn-of-africa'],
   ['IRI (Columbia) — ENSO forecast', 'https://iri.columbia.edu/our-expertise/climate/forecasts/enso/current/'],
-  ['RC Climate Centre — Preparing for 2015–16', 'https://www.climatecentre.org/wp-content/uploads/Preparing-for-the-2015-2016-El-Nino.pdf'],
+  ['RC Climate Centre — 2015–16 prep', 'https://www.climatecentre.org/wp-content/uploads/Preparing-for-the-2015-2016-El-Nino.pdf'],
   ['FloodList — Narok landslide (18 Nov 2015)', 'https://floodlist.com/africa/kenya-floods-heavy-rain-el-nino-2015'],
-  ['Kenya Red Cross — Rainfall Report 17 (Nov 2015)', 'https://reliefweb.int/report/kenya/el-nino-rainfall-monitoring-report-17-november-10-2015'],
+  ['Kenya Red Cross — Report 17 (2015)', 'https://reliefweb.int/report/kenya/el-nino-rainfall-monitoring-report-17-november-10-2015'],
   ['WFP — El Niño Situation Report #1 (Dec 2015)', 'https://reliefweb.int/node/1290936'],
   ['IFRC DREF MDRKE011 — Floods 2010', 'https://www.ifrc.org/docs?file=appeals/10/MDRKE011.pdf'],
-  ['IFRC EPoA MDRKE036 — Kenya: Floods (4 Jan 2016)', 'https://reliefweb.int/report/kenya/kenya-floods-emergency-plan-action-mdrke036'],
+  ['IFRC EPoA MDRKE036 (2016)', 'https://reliefweb.int/report/kenya/kenya-floods-emergency-plan-action-mdrke036'],
   ['OCHA — Floods Situation Report No. 2 (4 Nov 2009)', 'https://reliefweb.int/report/kenya/kenya-floods-situation-report-no-2-04-nov-2009'],
   ['OCHA — Floods Situation Report No. 2 (5 Jan 2010)', 'https://www.unocha.org/publications/report/kenya/kenya-floods-situation-report-no-2-05-jan-2010'],
   ['OCHA — Floods Situation Report No. 3 (12 Jan 2010)', 'https://www.unocha.org/publications/report/kenya/kenya-floods-situation-report-no-3-12-jan-2010'],
   ['OCHA — Floods Situation Report No. 1 (21 Apr 2009)', 'https://www.unocha.org/publications/report/kenya/kenya-floods-situation-report-no-1-21-apr-2009'],
-  ['Nation Africa — El Niño: 18 counties flagged', 'https://nation.africa/kenya/climate/el-ni%C3%B1o-18-counties-flagged-as-high-risk-5552916'],
+  ['Nation Africa — 18 counties flagged', 'https://nation.africa/kenya/climate/el-ni%C3%B1o-18-counties-flagged-as-high-risk-5552916'],
   ['geoBoundaries — Kenya ADM1 boundaries', 'https://www.geoboundaries.org/api/current/gbOpen/KEN/ADM1/'],
 ];
 
@@ -86,20 +92,20 @@ export default function AboutPage() {
       <section className="about-hero">
         <span className="badge">Kenya · County-level · El Niño intelligence</span>
         <h1>El Niño, mapped <b>county by county</b></h1>
-        <p className="about-lede">How the <b>2009–10</b> and <b>2015–16</b> El Niño floods affected Kenya’s 47 counties, a transparent county-level <b>2026 outlook</b>, and how ENSO phases Atlantic hurricane seasons.</p>
+        <p className="about-lede">How the <b>1997–98</b>, <b>2009–10</b>, and <b>2015–16</b> El Niño floods affected Kenya, plus a transparent county-level <b>2026 outlook</b> and how ENSO phases Atlantic hurricane seasons.</p>
         <div className="about-actions">
           <a className="about-button primary" href="/">Open the mapper →</a>
           <a className="about-button secondary" href="/#y2026">See the 2026 outlook</a>
         </div>
         <div className="about-stats">
           <div><b>47</b><span>counties mapped</span></div>
-          <div><b>2</b><span>historical El Niño events</span></div>
+          <div><b>3</b><span>historical El Niño events</span></div>
           <div><b>0–100</b><span>2026 county risk index</span></div>
           <div><b>19</b><span>Atlantic seasons by ENSO phase</span></div>
         </div>
       </section>
 
-      <h2 className="about-section-title">Six views inside the mapper</h2>
+      <h2 className="about-section-title">Seven views inside the mapper</h2>
       <div className="about-cards">
         {views.map((view) => (
           <a className="about-card" href={view.href} key={view.title}>
@@ -114,13 +120,13 @@ export default function AboutPage() {
       <section className="about-panel">
         <figure>
           <img src="/assets/process-diagram.png" alt="Data pipeline: historical El Niño records to impact coding, boundaries, interactive map and insight" />
-          <figcaption>Data pipeline — from historical El Niño records to the county-level interactive map.</figcaption>
+          <figcaption>Data pipeline, from records to county map.</figcaption>
         </figure>
         <ul>
-          <li><b>Impact records</b> coded from OCHA, IFRC, Kenya Red Cross, WFP, and reporting on the 2009–10 and 2015–16 events.</li>
+          <li><b>Impact records</b> from OCHA, IFRC, Kenya Red Cross, WFP, USAID/OFDA, FAO, and Nation Africa (1997–98, 2009–10, and 2015–16).</li>
           <li><b>Boundaries</b> from geoBoundaries — Kenya ADM1, all 47 counties.</li>
           <li><b>2026 index</b> = 0.40 × historical recurrence + 0.35 × ICPAC/KMD forecast signal + 0.25 × structural exposure.</li>
-          <li><b>Atlantic module</b> uses NOAA/NHC HURDAT2 hurricane counts paired with historical ENSO phases.</li>
+          <li><b>Atlantic module</b> uses NOAA/NHC HURDAT2 counts against the historical ENSO phase.</li>
         </ul>
         <p className="hint about-caveat">The 2026 figure is a transparent planning index, not a physics-based hydrological forecast. Forecast skill declines for smaller areas and farther into the future. Consult the current official sources before making operational decisions.</p>
       </section>
@@ -140,11 +146,7 @@ export default function AboutPage() {
 
       <footer className="about-footer">
         <div className="credit"><span className="logotile">D</span><span>Super El Niño Mapper — Kenya · built and maintained by <b>DEGEM</b> · 2026</span></div>
-        <nav aria-label="Footer navigation">
-          <a href="/">Mapper</a>
-          <a href="/about#sources">Sources</a>
-          <a href="https://elninomapper.gt.tc/stats.php?key=dgm_7f3c1a9e5b2d48c6&i=1" target="_blank" rel="noopener noreferrer">Visitor stats ↗</a>
-        </nav>
+        <nav aria-label="Footer navigation"><a href="/">Mapper</a><a href="/about#sources">Sources</a></nav>
       </footer>
     </main>
   );
