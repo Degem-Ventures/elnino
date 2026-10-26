@@ -488,7 +488,7 @@ const WXRB = [
   {max:0.01, c:'#16243a', l:'dry'},{max:5, c:'#1d3f5e', l:'0–5 mm'},{max:15, c:'#1f5f86', l:'5–15 mm'},
   {max:30, c:'#2a86b8', l:'15–30 mm'},{max:60, c:'#38bdf8', l:'30–60 mm'},{max:1e9, c:'#a5e4ff', l:'60 mm +'}
 ];
-const wxS = {county:'Nairobi', model:'ecmwf_ifs025', metric:'rain', byName:null, err:null, busy:false, built:false, coarse:false};
+const wxS = {county:'Nairobi', model:'ecmwf_ifs025', metric:'rain', byName:null, err:null, busy:false, built:false, cached:null};
 const wxPath = {};
 
 function wxBands(){ return wxS.metric==='rain' ? WXRB : WXTB; }
@@ -515,21 +515,6 @@ function wxValue(r){
 function wxFmt(v){
   if(v===null || v===undefined){ return '—'; }
   return wxS.metric==='rain' ? (v.toFixed(1)+' mm') : (v.toFixed(1)+'°C');
-}
-
-/* 9 sample points per county, row-major: (-1,-1) (-1,0) (-1,1) (0,-1) ... */
-function wxPoints(coarse){
-  const pts = [];
-  for(let c=0;c<allNames.length;c++){
-    const g = WXC[allNames[c]] || [0,0,0,0];
-    if(coarse){ pts.push([g[0], g[1]]); continue; }
-    for(let i=-1;i<=1;i++){
-      for(let j=-1;j<=1;j++){
-        pts.push([Math.round((g[0]+i*g[2])*1000)/1000, Math.round((g[1]+j*g[3])*1000)/1000]);
-      }
-    }
-  }
-  return pts;
 }
 
 /* average the chunk of samples that belongs to one county */
@@ -621,7 +606,7 @@ function wxBind(){
   const s2 = document.getElementById('wxm');
   if(s2){ s2.onchange = function(e){ wxS.model = e.target.value; wxS.byName = null; wxS.err = null; loadWeather(); }; }
   const b1 = document.getElementById('wxr');
-  if(b1){ b1.onclick = function(){ wxS.byName = null; wxS.err = null; loadWeather(); }; }
+  if(b1){ b1.onclick = function(){ wxS.byName = null; wxS.err = null; loadWeather(true); }; }
 }
 
 function renderWeather(){
@@ -680,7 +665,9 @@ function wxPaint(){
   if(h){ h.textContent = wxTitle(); }
   const upd = document.getElementById('wxupd');
   if(upd){
-    upd.textContent = d ? ((isRain ? '7-day totals' : 'temperature now') + ' · EAT (UTC+3)') : 'loading…';
+    if(!d){ upd.textContent = 'loading…'; }
+    else if(wxS.cached){ upd.textContent = 'saved copy · ' + wxS.cached + ' EAT'; }
+    else { upd.textContent = (isRain ? '7-day totals' : 'temperature now') + ' · EAT (UTC+3)'; }
   }
 
   const leg = document.getElementById('wxleg');
@@ -737,17 +724,41 @@ function wxPaint(){
     cur + '<div class="wxdays">'+rows+'</div>';
 }
 
-function loadWeather(){
+function wxApply(j, ts){
+  const map = {};
+  Object.keys(j).forEach(function(nm){ const c = j[nm]; if(c && c.length){ map[nm] = wxCombine(c); } });
+  if(!Object.keys(map).length){ return false; }
+  wxS.byName = map; wxS.err = null;
+  if(ts){
+    const dt = new Date(ts);
+    wxS.cached = dt.toLocaleString('en-GB', {day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit', timeZone:'Africa/Nairobi'});
+  } else {
+    wxS.cached = null;
+  }
+  return true;
+}
+
+function loadWeather(fresh){
   wxS.busy = true;
-  const coarse = wxS.coarse;
-  const pts = wxPoints(coarse);
-  const per = coarse ? 1 : 9;
-  const lat = pts.map(function(p){ return p[0]; }).join(',');
-  const lon = pts.map(function(p){ return p[1]; }).join(',');
-  const url = 'https://api.open-meteo.com/v1/forecast?latitude=' + lat + '&longitude=' + lon +
-    '&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m' +
-    '&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max' +
-    '&forecast_days=7&timezone=Africa%2FNairobi&models=' + wxS.model;
+  const key = 'wx:' + wxS.model;
+
+  /* repeat visit within 2 h: no network at all */
+  if(!fresh){
+    try {
+      const raw = localStorage.getItem(key);
+      if(raw){
+        const o = JSON.parse(raw);
+        const ageH = (Date.now() - o.t) / 3600000;
+        if(o.d && ageH < 2 && wxApply(o.d, o.t)){
+          wxS.busy = false;
+          wxPaint();
+          return;
+        }
+      }
+    } catch(e){}
+  }
+
+  const url = 'wx.php?model=' + encodeURIComponent(wxS.model) + (fresh ? '&fresh=1' : '');
   fetch(url)
     .then(function(r){
       return r.text().then(function(txt){
@@ -757,24 +768,21 @@ function loadWeather(){
         return j;
       });
     })
-    .then(function(arr){
-      if(!Array.isArray(arr)){ throw new Error((arr && arr.reason) ? arr.reason : 'unexpected response'); }
-      const map = {};
-      for(let c=0;c<allNames.length;c++){
-        const chunk = arr.slice(c*per, c*per + per).filter(function(x){ return x && !x.error; });
-        if(chunk.length){ map[allNames[c]] = wxCombine(chunk); }
-      }
-      if(!Object.keys(map).length){ throw new Error('empty response'); }
-      wxS.byName = map; wxS.err = null;
+    .then(function(j){
+      if(j && j.error){ throw new Error(j.reason || 'weather unavailable'); }
+      if(!wxApply(j, null)){ throw new Error('empty response'); }
+      try { localStorage.setItem(key, JSON.stringify({t: Date.now(), d: j})); } catch(e){}
     })
     .catch(function(e){
-      if(!coarse){
-        wxS.coarse = true;
-        wxS.busy = false;
-        loadWeather();
-        return;
-      }
-      wxS.err = e.message || 'network error';
+      let restored = false;
+      try {
+        const raw = localStorage.getItem(key);
+        if(raw){
+          const o = JSON.parse(raw);
+          if(o && o.d){ restored = wxApply(o.d, o.t); }
+        }
+      } catch(e2){}
+      if(!restored){ wxS.err = e.message || 'network error'; }
     })
     .then(function(){ wxS.busy = false; if(state.mode==='wx'){ wxPaint(); } });
 }
