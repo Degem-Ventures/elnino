@@ -3,11 +3,12 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import AtlanticView from './atlantic-view';
 import DATA from './data.json';
+import NewsView from './news-view';
 import PROVINCE_MAP from './province-map.json';
 import ProvinceView from './province-view';
 import WeatherView from './weather-view';
 
-type Mode = 'y1997' | 'y2009' | 'y2015' | 'y2026' | 'hot' | 'wx' | 'atl';
+type Mode = 'y1997' | 'y2009' | 'y2015' | 'y2026' | 'hot' | 'wx' | 'news' | 'atl';
 type HistoricalMode = 'y2009' | 'y2015';
 type Tooltip = { county: string; left: number; top: number } | null;
 
@@ -42,6 +43,7 @@ const RISK_LABEL: Record<string, string> = {
 };
 const TABS: ({ mode: Mode; label: string } | { separator: true })[] = [
   { mode: 'y2026', label: '2026 outlook' },
+  { mode: 'news', label: 'Breaking' },
   { mode: 'wx', label: 'Weather' },
   { separator: true },
   { mode: 'y2015', label: '2015–16' },
@@ -113,7 +115,7 @@ export default function Home() {
 
   useEffect(() => {
     const requestedMode = window.location.hash.slice(1);
-    if (['y1997', 'y2009', 'y2015', 'y2026', 'hot', 'wx', 'atl'].includes(requestedMode)) {
+    if (['y1997', 'y2009', 'y2015', 'y2026', 'hot', 'wx', 'news', 'atl'].includes(requestedMode)) {
       setMode(requestedMode as Mode);
     }
   }, []);
@@ -433,7 +435,7 @@ export default function Home() {
         </nav>
       </header>
 
-      {mode === 'wx' ? <WeatherView /> : mode === 'atl' ? <AtlanticView /> : mode === 'y1997' ? <ProvinceView /> : (
+      {mode === 'wx' ? <WeatherView /> : mode === 'news' ? <NewsView onCounty={(county) => { setSelected(county); setMode('y2026'); window.history.replaceState(null, '', '#y2026'); }} /> : mode === 'atl' ? <AtlanticView /> : mode === 'y1997' ? <ProvinceView /> : (
       <div className="grid" id="maingrid">
         <section className="card mapcard" aria-label="County impact map">
           <div className="tools">

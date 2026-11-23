@@ -26,6 +26,12 @@ const views = [
     description: 'A detailed record of the strongest El Niño since 1997–98 and its impacts across Kenya.',
   },
   {
+    href: '/#news',
+    color: '#f43f5e',
+    title: 'Breaking',
+    description: 'Curated flood impacts and the latest county-level KMD updates from Kenyan reporting.',
+  },
+  {
     href: '/#y2026',
     color: 'var(--high)',
     title: '2026 outlook',
@@ -82,6 +88,7 @@ export default function AboutPage() {
         </a>
         <nav className="about-nav" aria-label="About page navigation">
           <a href="/#y2026">2026 outlook</a>
+          <a href="/#news">Breaking</a>
           <a href="/#wx">Weather</a>
           <a href="/#atl">Atlantic &amp; ENSO</a>
           <a href="/#hot">Hotspots</a>
@@ -105,7 +112,7 @@ export default function AboutPage() {
         </div>
       </section>
 
-      <h2 className="about-section-title">Seven views inside the mapper</h2>
+      <h2 className="about-section-title">Eight views inside the mapper</h2>
       <div className="about-cards">
         {views.map((view) => (
           <a className="about-card" href={view.href} key={view.title}>

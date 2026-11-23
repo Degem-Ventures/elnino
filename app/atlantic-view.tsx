@@ -84,6 +84,18 @@ export default function AtlanticView() {
         <div className="lg"><span className="sw major-swatch" />Dark base = major hurricanes (Cat 3+)</div>
       </div>
 
+      <div className="world-strip card pad">
+        <div className="wtitle">WORLD · EQUAL EARTH — true-area projection</div>
+        <svg viewBox="0 0 1000 486" preserveAspectRatio="xMidYMid meet" role="img" aria-label="World map showing Kenya and the Niño 3.4 region">
+          <path className="world-land" d="M125 96 L245 48 L355 64 L430 118 L386 188 L278 208 L190 178 Z M420 205 L505 165 L610 188 L670 248 L605 318 L500 300 L448 260 Z M650 80 L760 45 L865 86 L890 156 L810 190 L720 164 Z M555 330 L625 322 L682 385 L650 445 L575 425 Z" />
+          <path className="world-land" d="M300 230 L356 248 L330 352 L285 410 L250 340 Z M730 220 L820 205 L900 260 L870 330 L790 318 Z" />
+          <rect className="nino-box" x="125" y="218" width="138" height="48" rx="3" />
+          <circle className="kenya-ring" cx="655" cy="260" r="17" />
+          <circle className="kenya-dot" cx="655" cy="260" r="6.5" />
+        </svg>
+        <div className="world-caption"><span><i className="kenya-key" />Kenya</span><span><i className="nino-key" />Niño 3.4 · +1.8 °C</span><span>Equal Earth · true area</span></div>
+      </div>
+
       <h3 className="h atl-section-title">Annual breakdown, 2007–2025</h3>
       <div className="tablewrap">
         <table className="atl">
